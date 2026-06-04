@@ -1,0 +1,72 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pump-research-framework"
+version = "0.1.0"
+description = "A public crypto research framework with an offline scoring companion."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "baronguyen001" }]
+keywords = ["crypto", "research", "risk", "scorecard", "offline"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Financial and Insurance Industry",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Office/Business :: Financial :: Investment",
+]
+dependencies = ["pyyaml>=6.0"]
+
+[project.optional-dependencies]
+dev = [
+  "ipykernel>=6.29",
+  "mypy>=1.10",
+  "nbstripout>=0.7",
+  "papermill>=2.6",
+  "pytest>=8.0",
+  "pytest-cov>=5.0",
+  "ruff>=0.5",
+  "types-PyYAML>=6.0",
+]
+
+[project.scripts]
+pumpscore = "pumpscore.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/baronguyen001/pump-research-framework"
+Repository = "https://github.com/baronguyen001/pump-research-framework"
+Issues = "https://github.com/baronguyen001/pump-research-framework/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pumpscore"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.11"
+packages = ["pumpscore"]
+strict = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["pumpscore"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

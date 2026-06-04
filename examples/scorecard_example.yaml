@@ -1,0 +1,52 @@
+token: FICTIONAL_RWA_AGENT
+layers:
+  narrative:
+    points: 22
+    notes: "RWA and AI-agent narratives are both gaining attention in public dashboards."
+  social:
+    points: 19
+    notes: "Mid-tier accounts discuss it organically; no tier-1 media cycle yet."
+  onchain:
+    points: 20
+    notes: "Holder count and liquidity are rising in this fictional example."
+  catalyst:
+    points: 21
+    notes: "A mainnet utility event is scheduled inside the next quarter."
+context:
+  mcap_usd: 120000000
+  days_since_launch: 74
+  pumped_x_30d: 2.4
+  funding_rate_8h: 0.012
+  catalyst_days_out: 45
+  cex_tier: 2
+patterns:
+  hot_narrative_early: true
+  small_starting_mcap: true
+  healthy_holder_distribution: true
+  liquidity_growing: true
+  volume_mcap_accumulation: true
+  smart_money_present: true
+  organic_mid_tier_social: true
+  tier2_before_tier1: false
+  active_development: true
+  clear_30_90d_catalyst: true
+red_flags:
+  top10_over_50pct: false
+  liquidity_unlocked: false
+  anon_team_sketchy_funding: false
+  single_venue_wash_volume: false
+  large_unlock_or_emissions: false
+  already_50x_week: false
+  paid_promo_social: false
+stage_signals:
+  mention_rate_wow: 120
+  smart_wallets_7d: 4
+  google_trends_rising: true
+  tier1_kol_covering: false
+  mainstream_media: false
+  down_from_ath_pct: 15
+execution_plan:
+  asset_class: midcap
+  bankroll_usd: 10000
+  entry_price: 1.0
+  invalidation: "Fictional example: catalyst cancelled or liquidity exits."

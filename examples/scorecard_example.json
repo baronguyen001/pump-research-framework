@@ -1,0 +1,17 @@
+{
+  "token": "FICTIONAL_AI_MEME",
+  "layers": {
+    "narrative": {"points": 18, "notes": "Illustrative narrative score."},
+    "social": {"points": 16, "notes": "Illustrative social score."},
+    "onchain": {"points": 14, "notes": "Illustrative on-chain score."},
+    "catalyst": {"points": 12, "notes": "Illustrative catalyst score."}
+  },
+  "context": {
+    "mcap_usd": 42000000,
+    "days_since_launch": 11,
+    "pumped_x_30d": 7.2,
+    "funding_rate_8h": 0.01,
+    "catalyst_days_out": 120,
+    "cex_tier": 0
+  }
+}
