@@ -12,6 +12,7 @@ build/
 *.egg-info/
 *.json
 !examples/*.json
+!tests/fixtures/*.json
 !examples/*.ipynb
 !*.ipynb
 .ipynb_checkpoints/

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pump-research-framework"
-version = "0.1.0"
+version = "0.2.0"
 description = "A public crypto research framework with an offline scoring companion."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -24,6 +24,9 @@ classifiers = [
 dependencies = ["pyyaml>=6.0"]
 
 [project.optional-dependencies]
+# Opt-in network extra for the keyless narrative finder. The deterministic core
+# never needs it; the finder also works on the standard-library urllib client.
+net = ["requests>=2.31"]
 dev = [
   "ipykernel>=6.29",
   "mypy>=1.10",

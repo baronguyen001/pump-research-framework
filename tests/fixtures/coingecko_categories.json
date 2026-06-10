@@ -1,0 +1,32 @@
+[
+  {
+    "id": "real-world-assets-rwa",
+    "name": "Real World Assets (RWA)",
+    "market_cap": 38000000000,
+    "market_cap_change_24h": 6.42
+  },
+  {
+    "id": "artificial-intelligence",
+    "name": "Artificial Intelligence (AI)",
+    "market_cap": 27000000000,
+    "market_cap_change_24h": 4.18
+  },
+  {
+    "id": "depin",
+    "name": "DePIN",
+    "market_cap": 14000000000,
+    "market_cap_change_24h": -1.25
+  },
+  {
+    "id": "meme-token",
+    "name": "Meme",
+    "market_cap": 52000000000,
+    "market_cap_change_24h": 9.73
+  },
+  {
+    "id": "no-change-category",
+    "name": "Quiet Category",
+    "market_cap": null,
+    "market_cap_change_24h": null
+  }
+]

@@ -10,10 +10,13 @@ from typing import Any, cast
 
 import yaml
 
+from pumpscore.backtest import BacktestError, backtest, format_report
 from pumpscore.checklist import PATTERNS, RED_FLAGS, evaluate_checklist
 from pumpscore.io import _read_mapping, blank_template, card_from_dict, load_scorecard
 from pumpscore.lifecycle import StageSignals, classify_stage, fomo_decision, goldilocks_gate
 from pumpscore.model import LAYER_NAMES, LayerScore, Scorecard
+from pumpscore.narrative import SOURCES, NarrativeError, fetch_narratives, format_table
+from pumpscore.report import render_from_card_dict
 from pumpscore.score import score
 from pumpscore.sizing import scale_in_plan, suggest_size, tp_ladder
 
@@ -73,8 +76,56 @@ def cmd_template(args: argparse.Namespace) -> int:
 
 
 def cmd_score(args: argparse.Namespace) -> int:
-    card = _interactive_card() if args.interactive else load_scorecard(args.card)
-    _print_score(score(card, _parse_weights(args.weights)))
+    weights = _parse_weights(args.weights)
+    if args.interactive:
+        card = _interactive_card()
+        raw: dict[str, Any] = {}
+    else:
+        raw = _read_mapping(args.card)
+        card = card_from_dict(raw)
+    _print_score(score(card, weights))
+    if getattr(args, "html", None):
+        html_text = render_from_card_dict(raw, card, weights)
+        Path(args.html).write_text(html_text, encoding="utf-8")
+        print("")
+        print(f"Wrote HTML scorecard to {args.html}")
+    return 0
+
+
+def cmd_report(args: argparse.Namespace) -> int:
+    raw = _read_mapping(args.card)
+    card = card_from_dict(raw)
+    html_text = render_from_card_dict(raw, card, _parse_weights(args.weights))
+    if args.out:
+        Path(args.out).write_text(html_text, encoding="utf-8")
+        print(f"Wrote HTML scorecard to {args.out}")
+    else:
+        print(html_text, end="")
+    return 0
+
+
+def cmd_narratives(args: argparse.Namespace) -> int:
+    try:
+        rows = fetch_narratives(source=args.source, top=args.top)
+    except NarrativeError as exc:
+        print(f"Narrative finder unavailable: {exc}", file=sys.stderr)
+        print(
+            "This is the only opt-in network feature. Install the extra with "
+            "'pip install pump-research-framework[net]' and retry when online.",
+            file=sys.stderr,
+        )
+        return 2
+    print(format_table(rows, args.source), end="")
+    return 0
+
+
+def cmd_backtest(args: argparse.Namespace) -> int:
+    try:
+        stats = backtest(args.cases, hit_threshold=args.hit_threshold)
+    except BacktestError as exc:
+        print(f"Backtest input error: {exc}", file=sys.stderr)
+        return 2
+    print(format_report(stats, hit_threshold=args.hit_threshold), end="")
     return 0
 
 
@@ -200,7 +251,29 @@ def build_parser() -> argparse.ArgumentParser:
     score_cmd.add_argument("card", nargs="?")
     score_cmd.add_argument("--weights")
     score_cmd.add_argument("--interactive", action="store_true")
+    score_cmd.add_argument("--html", help="Also write a standalone HTML scorecard to this path")
     score_cmd.set_defaults(func=cmd_score)
+
+    report = sub.add_parser("report", help="Render a standalone HTML scorecard")
+    report.add_argument("card")
+    report.add_argument("--out", help="Write HTML here instead of stdout")
+    report.add_argument("--weights")
+    report.set_defaults(func=cmd_report)
+
+    narratives = sub.add_parser(
+        "narratives",
+        help="Opt-in: rank hot narratives from public category APIs (needs network)",
+    )
+    narratives.add_argument("--source", choices=list(SOURCES), default="coingecko")
+    narratives.add_argument("--top", type=int, default=15)
+    narratives.set_defaults(func=cmd_narratives)
+
+    backtest_cmd = sub.add_parser(
+        "backtest", help="Per-strategy backtest stubs over a public cases CSV"
+    )
+    backtest_cmd.add_argument("cases")
+    backtest_cmd.add_argument("--hit-threshold", type=float, default=2.0)
+    backtest_cmd.set_defaults(func=cmd_backtest)
 
     checklist = sub.add_parser("checklist", help="Evaluate patterns and red flags")
     checklist.add_argument("card")

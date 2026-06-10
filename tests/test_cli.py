@@ -58,3 +58,71 @@ def test_cli_size(capsys: pytest.CaptureFixture[str]) -> None:
     out = capsys.readouterr().out
     assert "Suggested cap: 3.75%" in out
     assert "target=4.0" in out
+
+
+def test_cli_score_html(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    out_html = tmp_path / "card.html"
+    assert main(["score", str(FIXTURE), "--html", str(out_html)]) == 0
+    assert "Wrote HTML scorecard" in capsys.readouterr().out
+    text = out_html.read_text(encoding="utf-8")
+    assert text.startswith("<!doctype html>")
+    assert "FICTIONAL_RWA_AGENT" in text
+
+
+def test_cli_report_stdout(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["report", str(FIXTURE)]) == 0
+    out = capsys.readouterr().out
+    assert "<!doctype html>" in out
+    assert "Educational sizing" in out
+
+
+def test_cli_report_to_file(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    out_html = tmp_path / "report.html"
+    assert main(["report", str(FIXTURE), "--out", str(out_html)]) == 0
+    assert "Wrote HTML scorecard" in capsys.readouterr().out
+    assert out_html.read_text(encoding="utf-8").startswith("<!doctype html>")
+
+
+def test_cli_backtest(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["backtest", "examples/cases_example.csv"]) == 0
+    out = capsys.readouterr().out
+    assert "Per-strategy backtest stub" in out
+    assert "Caveats:" in out
+
+
+def test_cli_backtest_bad_csv(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    bad = tmp_path / "bad.csv"
+    bad.write_text("strategy,token\nA,X\n", encoding="utf-8")
+    assert main(["backtest", str(bad)]) == 2
+    assert "input error" in capsys.readouterr().err
+
+
+def test_cli_narratives_degrades_gracefully(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # Simulate being offline: the network entry point raises NarrativeError.
+    from pumpscore import cli
+    from pumpscore.narrative import NarrativeError
+
+    def _boom(*args: object, **kwargs: object) -> object:
+        raise NarrativeError("Could not reach the narrative source.")
+
+    monkeypatch.setattr(cli, "fetch_narratives", _boom)
+    assert main(["narratives"]) == 2
+    err = capsys.readouterr().err
+    assert "Narrative finder unavailable" in err
+    assert "opt-in" in err
+
+
+def test_cli_narratives_renders_with_stub(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from pumpscore import cli
+    from pumpscore.narrative import NarrativeRow
+
+    rows = [NarrativeRow("Test Narrative", 5.0, 9.0, 1_000_000_000.0, "coingecko")]
+    monkeypatch.setattr(cli, "fetch_narratives", lambda **kwargs: rows)
+    assert main(["narratives", "--top", "5"]) == 0
+    out = capsys.readouterr().out
+    assert "Test Narrative" in out
+    assert "not a buy signal" in out

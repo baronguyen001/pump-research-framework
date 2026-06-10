@@ -76,6 +76,55 @@ pumpscore template --out card.yaml
 Then fill in the four layer scores, pattern checklist, red flags, and context
 fields from your own research.
 
+## New in v0.2
+
+Three additive tools. The deterministic core stays offline and keyless; only the
+narrative finder ever touches the network, and only when you ask it to.
+
+### Current-narrative finder (opt-in, keyless)
+
+`pumpscore narratives` ranks which categories are heating up right now, using the
+free, read-only, public category endpoints from CoinGecko and DefiLlama. There is
+no API key, no auth, and no scraping. It answers one question: "what narrative is
+hot, so I know where to point the four-layer framework?" It is not a buy signal.
+
+```bash
+pip install "pump-research-framework[net]"   # optional network extra
+pumpscore narratives --source coingecko --top 15
+pumpscore narratives --source defillama --top 15
+```
+
+If you are offline, or the public endpoint is down, it prints a clear message and
+exits instead of crashing. The deterministic core never imports this module.
+
+### Per-strategy backtest stubs
+
+`pumpscore backtest` reads a CSV of public, after-the-fact case outcomes and prints
+hit-rate, median multiple, and a survivorship-adjusted hit-rate for each of the
+A/B/C/D/E strategy modes, alongside explicit caveats. These are honest stubs, not
+an edge: the inputs are hand-collected and survivorship-biased, and the tool says
+so out loud.
+
+```bash
+pumpscore backtest examples/cases_example.csv
+```
+
+The shipped `examples/cases_example.csv` contains clearly fictional rows. Bring
+your own public data with the columns
+`strategy,token,entry_date,multiple,flagged_by_framework,survived`.
+
+### HTML scorecard
+
+`pumpscore report` renders a single self-contained HTML page from a scorecard:
+four-layer bars, total and band, checklist verdict, lifecycle stage, and the
+educational sizing plan. Pure string templating, no JavaScript, no external
+assets.
+
+```bash
+pumpscore report examples/scorecard_example.yaml --out scorecard.html
+pumpscore score examples/scorecard_example.yaml --html scorecard.html
+```
+
 ## The honest part
 
 Most "alpha" writeups stop at the winners. This repo keeps the uncomfortable

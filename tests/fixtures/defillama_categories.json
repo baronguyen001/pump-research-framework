@@ -1,0 +1,22 @@
+{
+  "Liquid Staking": {
+    "tvl": 42000000000,
+    "change_1d": 2.1,
+    "change_7d": 8.4
+  },
+  "Lending": {
+    "tvl": 31000000000,
+    "change_1d": -0.8,
+    "change_7d": 3.2
+  },
+  "Dexes": {
+    "tvl": 19000000000,
+    "change_1d": 5.6,
+    "change_7d": 12.0
+  },
+  "Bridge": {
+    "tvl": 7000000000,
+    "change_1d": null,
+    "change_7d": null
+  }
+}
