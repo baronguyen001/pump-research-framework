@@ -76,6 +76,23 @@ pumpscore template --out card.yaml
 Then fill in the four layer scores, pattern checklist, red flags, and context
 fields from your own research.
 
+## New in v0.3
+
+Three more offline, deterministic tools — the keyless core is untouched.
+
+```bash
+# Rank several scorecards side by side (text / markdown / json)
+pumpscore compare card_a.yaml card_b.yaml card_c.yaml --format markdown
+
+# Render a Markdown scorecard (paste into an issue / Discord / research note)
+pumpscore report card.yaml --format markdown
+pumpscore score  card.yaml --md scorecard.md
+
+# Export the narrative momentum table for a spreadsheet / pipeline
+pumpscore narratives --format json
+pumpscore narratives --format csv
+```
+
 ## New in v0.2
 
 Three additive tools. The deterministic core stays offline and keyless; only the

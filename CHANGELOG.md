@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.3.0 - 2026-06-21
+
+- Added `pumpscore compare CARD1 CARD2 ...` — rank several scorecards side by
+  side by weighted total. Deterministic and offline; `text`, `markdown` or
+  `json` output, optional `--out`. New API: `compare_cards`, `format_comparison`.
+- Added a **Markdown** scorecard renderer alongside the HTML one:
+  `pumpscore report CARD.yaml --format markdown` and `pumpscore score CARD.yaml
+  --md out.md`. Pure string templating, no dependencies. New API:
+  `render_markdown` (and `render_from_card_dict(..., fmt="markdown")`).
+- `pumpscore narratives --format json|csv` exports the ranked momentum table for
+  spreadsheets/pipelines (the table view stays the default). New API:
+  `format_json`, `format_csv`, `rows_to_dicts`.
+- All additions keep the deterministic, keyless, offline core untouched.
+
 ## v0.2.0 - 2026-06-10
 
 - Added an opt-in, keyless current-narrative finder (`pumpscore narratives`)

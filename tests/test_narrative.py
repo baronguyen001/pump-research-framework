@@ -6,10 +6,13 @@ import pytest
 from pumpscore.narrative import (
     NarrativeError,
     NarrativeRow,
+    format_csv,
+    format_json,
     format_table,
     parse_coingecko,
     parse_defillama,
     rank_narratives,
+    rows_to_dicts,
 )
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -85,3 +88,26 @@ def test_narrative_row_is_frozen() -> None:
     row = NarrativeRow("X", 1.0, 2.0, 3.0, "coingecko")
     with pytest.raises(AttributeError):
         row.name = "Y"  # type: ignore[misc]
+
+
+def test_rows_to_dicts_numbers_ranks() -> None:
+    rows = rank_narratives(parse_coingecko(_load("coingecko_categories.json")), top=2)
+    dicts = rows_to_dicts(rows)
+    assert [d["rank"] for d in dicts] == [1, 2]
+    assert dicts[0]["name"] == "Meme"
+    assert dicts[0]["source"] == "coingecko"
+
+
+def test_format_json_round_trips() -> None:
+    rows = rank_narratives(parse_coingecko(_load("coingecko_categories.json")), top=2)
+    parsed = json.loads(format_json(rows))
+    assert len(parsed) == 2
+    assert parsed[0]["rank"] == 1
+
+
+def test_format_csv_has_header_and_blanks_for_none() -> None:
+    rows = [NarrativeRow("Solo", None, None, None, "defillama")]
+    csv_text = format_csv(rows)
+    lines = csv_text.strip().split("\n")
+    assert lines[0] == "rank,name,change_24h,change_7d,market_cap_usd,source"
+    assert lines[1] == "1,Solo,,,,defillama"

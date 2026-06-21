@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pumpscore.io import _read_mapping, card_from_dict
 from pumpscore.model import LayerScore, Scorecard
-from pumpscore.report import render_from_card_dict, render_html
+from pumpscore.report import render_from_card_dict, render_html, render_markdown
 
 FIXTURE = Path("examples/scorecard_example.yaml")
 
@@ -60,3 +60,26 @@ def test_bars_present_for_all_layers() -> None:
     out = render_html(card)
     for label in ("Narrative", "Social", "Onchain", "Catalyst"):
         assert label in out
+
+
+def test_render_markdown_structure() -> None:
+    card = Scorecard(
+        "MDTEST",
+        {name: LayerScore(name, 20) for name in ("narrative", "social", "onchain", "catalyst")},
+    )
+    out = render_markdown(card)
+    assert out.startswith("# pumpscore - MDTEST")
+    assert "**80/100 - MEDIUM**" in out
+    assert "| Layer | Points |" in out
+    assert "not financial advice" in out
+    # no HTML tags in markdown output
+    assert "<div" not in out
+
+
+def test_render_from_card_dict_markdown_includes_context() -> None:
+    raw = _read_mapping(FIXTURE)
+    card = card_from_dict(raw)
+    out = render_from_card_dict(raw, card, fmt="markdown")
+    assert out.startswith("# pumpscore - FICTIONAL_RWA_AGENT")
+    assert "## Checklist" in out
+    assert "## Lifecycle" in out

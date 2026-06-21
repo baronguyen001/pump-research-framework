@@ -30,7 +30,7 @@ SOURCES: tuple[str, ...] = ("coingecko", "defillama")
 DEFAULT_TIMEOUT_SECONDS = 20.0
 # Polite, honest identifier. No key, no token.
 _USER_AGENT = (
-    "pump-research-framework/0.2 (+https://github.com/baronguyen001/pump-research-framework)"
+    "pump-research-framework/0.3 (+https://github.com/baronguyen001/pump-research-framework)"
 )
 
 
@@ -213,3 +213,37 @@ def format_table(rows: list[NarrativeRow], source: str) -> str:
         "research with the four-layer framework, not to chase green numbers."
     )
     return "\n".join(lines) + "\n"
+
+
+def rows_to_dicts(rows: list[NarrativeRow]) -> list[dict[str, Any]]:
+    """Plain-dict view of ranked rows, for JSON/CSV export. Pure, offline."""
+    return [
+        {
+            "rank": index,
+            "name": row.name,
+            "change_24h": row.change_24h,
+            "change_7d": row.change_7d,
+            "market_cap_usd": row.market_cap_usd,
+            "source": row.source,
+        }
+        for index, row in enumerate(rows, start=1)
+    ]
+
+
+def format_json(rows: list[NarrativeRow]) -> str:
+    """Render ranked rows as pretty JSON. Pure, offline."""
+    return json.dumps(rows_to_dicts(rows), indent=2) + "\n"
+
+
+def format_csv(rows: list[NarrativeRow]) -> str:
+    """Render ranked rows as CSV. Pure, offline, stdlib only."""
+    import csv
+    import io
+
+    buffer = io.StringIO()
+    fields = ["rank", "name", "change_24h", "change_7d", "market_cap_usd", "source"]
+    writer = csv.DictWriter(buffer, fieldnames=fields, lineterminator="\n")
+    writer.writeheader()
+    for record in rows_to_dicts(rows):
+        writer.writerow({k: ("" if record[k] is None else record[k]) for k in fields})
+    return buffer.getvalue()

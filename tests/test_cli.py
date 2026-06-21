@@ -126,3 +126,45 @@ def test_cli_narratives_renders_with_stub(
     out = capsys.readouterr().out
     assert "Test Narrative" in out
     assert "not a buy signal" in out
+
+
+def test_cli_narratives_json_and_csv(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from pumpscore import cli
+    from pumpscore.narrative import NarrativeRow
+
+    rows = [NarrativeRow("Test Narrative", 5.0, 9.0, 1_000_000_000.0, "coingecko")]
+    monkeypatch.setattr(cli, "fetch_narratives", lambda **kwargs: rows)
+    assert main(["narratives", "--format", "json"]) == 0
+    assert json.loads(capsys.readouterr().out)[0]["name"] == "Test Narrative"
+    assert main(["narratives", "--format", "csv"]) == 0
+    assert "rank,name,change_24h" in capsys.readouterr().out
+
+
+def test_cli_compare_ranks(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["compare", str(FIXTURE), str(FIXTURE), "--format", "markdown"]) == 0
+    out = capsys.readouterr().out
+    assert "# Scorecard comparison" in out
+    assert "FICTIONAL_RWA_AGENT" in out
+
+
+def test_cli_compare_to_file(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    out_file = tmp_path / "cmp.json"
+    assert main(["compare", str(FIXTURE), "--format", "json", "--out", str(out_file)]) == 0
+    assert "Wrote comparison" in capsys.readouterr().out
+    assert json.loads(out_file.read_text(encoding="utf-8"))[0]["token"] == "FICTIONAL_RWA_AGENT"
+
+
+def test_cli_score_markdown(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    out_md = tmp_path / "card.md"
+    assert main(["score", str(FIXTURE), "--md", str(out_md)]) == 0
+    assert "Wrote Markdown scorecard" in capsys.readouterr().out
+    assert out_md.read_text(encoding="utf-8").startswith("# pumpscore - FICTIONAL_RWA_AGENT")
+
+
+def test_cli_report_markdown(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["report", str(FIXTURE), "--format", "markdown"]) == 0
+    out = capsys.readouterr().out
+    assert out.startswith("# pumpscore - FICTIONAL_RWA_AGENT")
+    assert "## Checklist" in out

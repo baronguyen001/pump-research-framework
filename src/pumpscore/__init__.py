@@ -14,17 +14,21 @@ from pumpscore.backtest import (
     summarize,
 )
 from pumpscore.checklist import ChecklistResult, evaluate_checklist
+from pumpscore.compare import compare_cards, format_comparison
 from pumpscore.lifecycle import StageSignals, classify_stage, fomo_decision, goldilocks_gate
 from pumpscore.model import LAYER_NAMES, LayerScore, Scorecard
 from pumpscore.narrative import (
     NarrativeError,
     NarrativeRow,
     fetch_narratives,
+    format_csv,
+    format_json,
     parse_coingecko,
     parse_defillama,
     rank_narratives,
+    rows_to_dicts,
 )
-from pumpscore.report import render_from_card_dict, render_html
+from pumpscore.report import render_from_card_dict, render_html, render_markdown
 from pumpscore.score import Band, band_for, score, weighted_total
 from pumpscore.sizing import scale_in_plan, suggest_size, tp_ladder
 
@@ -43,9 +47,13 @@ __all__ = [
     "backtest",
     "band_for",
     "classify_stage",
+    "compare_cards",
     "evaluate_checklist",
     "fetch_narratives",
     "fomo_decision",
+    "format_comparison",
+    "format_csv",
+    "format_json",
     "goldilocks_gate",
     "parse_coingecko",
     "parse_defillama",
@@ -53,6 +61,8 @@ __all__ = [
     "read_cases",
     "render_from_card_dict",
     "render_html",
+    "render_markdown",
+    "rows_to_dicts",
     "scale_in_plan",
     "score",
     "suggest_size",

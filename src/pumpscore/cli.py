@@ -12,10 +12,18 @@ import yaml
 
 from pumpscore.backtest import BacktestError, backtest, format_report
 from pumpscore.checklist import PATTERNS, RED_FLAGS, evaluate_checklist
+from pumpscore.compare import compare_cards, format_comparison
 from pumpscore.io import _read_mapping, blank_template, card_from_dict, load_scorecard
 from pumpscore.lifecycle import StageSignals, classify_stage, fomo_decision, goldilocks_gate
 from pumpscore.model import LAYER_NAMES, LayerScore, Scorecard
-from pumpscore.narrative import SOURCES, NarrativeError, fetch_narratives, format_table
+from pumpscore.narrative import (
+    SOURCES,
+    NarrativeError,
+    fetch_narratives,
+    format_csv,
+    format_json,
+    format_table,
+)
 from pumpscore.report import render_from_card_dict
 from pumpscore.score import score
 from pumpscore.sizing import scale_in_plan, suggest_size, tp_ladder
@@ -89,18 +97,37 @@ def cmd_score(args: argparse.Namespace) -> int:
         Path(args.html).write_text(html_text, encoding="utf-8")
         print("")
         print(f"Wrote HTML scorecard to {args.html}")
+    if getattr(args, "md", None):
+        md_text = render_from_card_dict(raw, card, weights, fmt="markdown")
+        Path(args.md).write_text(md_text, encoding="utf-8")
+        print("")
+        print(f"Wrote Markdown scorecard to {args.md}")
+    return 0
+
+
+def cmd_compare(args: argparse.Namespace) -> int:
+    weights = _parse_weights(args.weights)
+    cards = [card_from_dict(_read_mapping(path)) for path in args.cards]
+    results = compare_cards(cards, weights)
+    text = format_comparison(results, fmt=args.format)
+    if args.out:
+        Path(args.out).write_text(text, encoding="utf-8")
+        print(f"Wrote comparison to {args.out}")
+    else:
+        print(text, end="")
     return 0
 
 
 def cmd_report(args: argparse.Namespace) -> int:
     raw = _read_mapping(args.card)
     card = card_from_dict(raw)
-    html_text = render_from_card_dict(raw, card, _parse_weights(args.weights))
+    text = render_from_card_dict(raw, card, _parse_weights(args.weights), fmt=args.format)
+    label = "Markdown" if args.format == "markdown" else "HTML"
     if args.out:
-        Path(args.out).write_text(html_text, encoding="utf-8")
-        print(f"Wrote HTML scorecard to {args.out}")
+        Path(args.out).write_text(text, encoding="utf-8")
+        print(f"Wrote {label} scorecard to {args.out}")
     else:
-        print(html_text, end="")
+        print(text, end="")
     return 0
 
 
@@ -115,7 +142,12 @@ def cmd_narratives(args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return 2
-    print(format_table(rows, args.source), end="")
+    if args.format == "json":
+        print(format_json(rows), end="")
+    elif args.format == "csv":
+        print(format_csv(rows), end="")
+    else:
+        print(format_table(rows, args.source), end="")
     return 0
 
 
@@ -252,12 +284,21 @@ def build_parser() -> argparse.ArgumentParser:
     score_cmd.add_argument("--weights")
     score_cmd.add_argument("--interactive", action="store_true")
     score_cmd.add_argument("--html", help="Also write a standalone HTML scorecard to this path")
+    score_cmd.add_argument("--md", help="Also write a Markdown scorecard to this path")
     score_cmd.set_defaults(func=cmd_score)
 
-    report = sub.add_parser("report", help="Render a standalone HTML scorecard")
+    compare = sub.add_parser("compare", help="Rank several scorecards side by side")
+    compare.add_argument("cards", nargs="+", help="Two or more scorecard files")
+    compare.add_argument("--weights")
+    compare.add_argument("--format", choices=["text", "markdown", "json"], default="text")
+    compare.add_argument("--out", help="Write the comparison here instead of stdout")
+    compare.set_defaults(func=cmd_compare)
+
+    report = sub.add_parser("report", help="Render a standalone HTML or Markdown scorecard")
     report.add_argument("card")
-    report.add_argument("--out", help="Write HTML here instead of stdout")
+    report.add_argument("--out", help="Write the report here instead of stdout")
     report.add_argument("--weights")
+    report.add_argument("--format", choices=["html", "markdown"], default="html")
     report.set_defaults(func=cmd_report)
 
     narratives = sub.add_parser(
@@ -266,6 +307,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     narratives.add_argument("--source", choices=list(SOURCES), default="coingecko")
     narratives.add_argument("--top", type=int, default=15)
+    narratives.add_argument("--format", choices=["table", "json", "csv"], default="table")
     narratives.set_defaults(func=cmd_narratives)
 
     backtest_cmd = sub.add_parser(
