@@ -156,6 +156,52 @@ def test_cli_compare_to_file(tmp_path: Path, capsys: pytest.CaptureFixture[str])
     assert json.loads(out_file.read_text(encoding="utf-8"))[0]["token"] == "FICTIONAL_RWA_AGENT"
 
 
+def test_cli_explain_stdout(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["explain", str(FIXTURE), "--weights", "narrative=2", "--format", "markdown"]) == 0
+    out = capsys.readouterr().out
+    assert "# Score explanation - FICTIONAL_RWA_AGENT" in out
+    assert "Highest-leverage layer" in out
+
+
+def test_cli_explain_to_file(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    out_file = tmp_path / "explain.json"
+    assert main(["explain", str(FIXTURE), "--format", "json", "--out", str(out_file)]) == 0
+    assert "Wrote explanation" in capsys.readouterr().out
+    assert json.loads(out_file.read_text(encoding="utf-8"))["token"] == "FICTIONAL_RWA_AGENT"
+
+
+def test_cli_sensitivity_stdout(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["sensitivity", str(FIXTURE), "--format", "text"]) == 0
+    out = capsys.readouterr().out
+    assert "Sensitivity analysis for FICTIONAL_RWA_AGENT" in out
+    assert "Swings are mechanical" in out
+
+
+def test_cli_sensitivity_to_file(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    out_file = tmp_path / "sensitivity.json"
+    assert main(["sensitivity", str(FIXTURE), "--format", "json", "--out", str(out_file)]) == 0
+    assert "Wrote sensitivity analysis" in capsys.readouterr().out
+    parsed = json.loads(out_file.read_text(encoding="utf-8"))
+    assert parsed["token"] == "FICTIONAL_RWA_AGENT"
+    assert len(parsed["rows"]) == 4
+
+
+def test_cli_export_stdout(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["export", str(FIXTURE), "--weights", "catalyst=2"]) == 0
+    out = capsys.readouterr().out
+    assert out.startswith("token,total,band,action")
+    assert "FICTIONAL_RWA_AGENT" in out
+
+
+def test_cli_export_to_file(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    out_file = tmp_path / "row.json"
+    assert main(["export", str(FIXTURE), "--format", "json", "--out", str(out_file)]) == 0
+    assert "Wrote export" in capsys.readouterr().out
+    parsed = json.loads(out_file.read_text(encoding="utf-8"))
+    assert parsed["token"] == "FICTIONAL_RWA_AGENT"
+    assert parsed["patterns_hit"] == 9
+
+
 def test_cli_score_markdown(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     out_md = tmp_path / "card.md"
     assert main(["score", str(FIXTURE), "--md", str(out_md)]) == 0

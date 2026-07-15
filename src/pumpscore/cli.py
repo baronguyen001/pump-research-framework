@@ -13,6 +13,8 @@ import yaml
 from pumpscore.backtest import BacktestError, backtest, format_report
 from pumpscore.checklist import PATTERNS, RED_FLAGS, evaluate_checklist
 from pumpscore.compare import compare_cards, format_comparison
+from pumpscore.explain import explain_card, format_explanation
+from pumpscore.export import export_row, format_export
 from pumpscore.io import _read_mapping, blank_template, card_from_dict, load_scorecard
 from pumpscore.lifecycle import StageSignals, classify_stage, fomo_decision, goldilocks_gate
 from pumpscore.model import LAYER_NAMES, LayerScore, Scorecard
@@ -26,6 +28,7 @@ from pumpscore.narrative import (
 )
 from pumpscore.report import render_from_card_dict
 from pumpscore.score import score
+from pumpscore.sensitivity import format_sensitivity, sensitivity
 from pumpscore.sizing import scale_in_plan, suggest_size, tp_ladder
 
 
@@ -113,6 +116,43 @@ def cmd_compare(args: argparse.Namespace) -> int:
     if args.out:
         Path(args.out).write_text(text, encoding="utf-8")
         print(f"Wrote comparison to {args.out}")
+    else:
+        print(text, end="")
+    return 0
+
+
+def cmd_explain(args: argparse.Namespace) -> int:
+    weights = _parse_weights(args.weights)
+    card = card_from_dict(_read_mapping(args.card))
+    text = format_explanation(explain_card(card, weights), fmt=args.format)
+    if args.out:
+        Path(args.out).write_text(text, encoding="utf-8")
+        print(f"Wrote explanation to {args.out}")
+    else:
+        print(text, end="")
+    return 0
+
+
+def cmd_sensitivity(args: argparse.Namespace) -> int:
+    weights = _parse_weights(args.weights)
+    card = card_from_dict(_read_mapping(args.card))
+    text = format_sensitivity(sensitivity(card, weights), fmt=args.format)
+    if args.out:
+        Path(args.out).write_text(text, encoding="utf-8")
+        print(f"Wrote sensitivity analysis to {args.out}")
+    else:
+        print(text, end="")
+    return 0
+
+
+def cmd_export(args: argparse.Namespace) -> int:
+    raw = _read_mapping(args.card)
+    card = card_from_dict(raw)
+    row = export_row(raw, card, _parse_weights(args.weights))
+    text = format_export(row, fmt=args.format)
+    if args.out:
+        Path(args.out).write_text(text, encoding="utf-8")
+        print(f"Wrote export to {args.out}")
     else:
         print(text, end="")
     return 0
@@ -293,6 +333,29 @@ def build_parser() -> argparse.ArgumentParser:
     compare.add_argument("--format", choices=["text", "markdown", "json"], default="text")
     compare.add_argument("--out", help="Write the comparison here instead of stdout")
     compare.set_defaults(func=cmd_compare)
+
+    explain = sub.add_parser("explain", help="Explain one scorecard's band and leverage")
+    explain.add_argument("card")
+    explain.add_argument("--weights")
+    explain.add_argument("--format", choices=["text", "markdown", "json"], default="text")
+    explain.add_argument("--out", help="Write the explanation here instead of stdout")
+    explain.set_defaults(func=cmd_explain)
+
+    sensitivity_cmd = sub.add_parser("sensitivity", help="Show one-layer-at-a-time score swings")
+    sensitivity_cmd.add_argument("card")
+    sensitivity_cmd.add_argument("--weights")
+    sensitivity_cmd.add_argument("--format", choices=["text", "markdown", "json"], default="text")
+    sensitivity_cmd.add_argument(
+        "--out", help="Write the sensitivity analysis here instead of stdout"
+    )
+    sensitivity_cmd.set_defaults(func=cmd_sensitivity)
+
+    export = sub.add_parser("export", help="Export one scorecard as a flat row")
+    export.add_argument("card")
+    export.add_argument("--weights")
+    export.add_argument("--format", choices=["csv", "json"], default="csv")
+    export.add_argument("--out", help="Write the export here instead of stdout")
+    export.set_defaults(func=cmd_export)
 
     report = sub.add_parser("report", help="Render a standalone HTML or Markdown scorecard")
     report.add_argument("card")

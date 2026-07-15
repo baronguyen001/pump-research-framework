@@ -60,6 +60,9 @@ pip install -e ".[dev]"
 pumpscore score examples/scorecard_example.yaml
 pumpscore checklist examples/scorecard_example.yaml
 pumpscore stage examples/scorecard_example.yaml
+pumpscore explain examples/scorecard_example.yaml
+pumpscore sensitivity examples/scorecard_example.yaml
+pumpscore export examples/scorecard_example.yaml
 pumpscore size examples/scorecard_example.yaml --bankroll 10000
 ```
 
@@ -75,6 +78,22 @@ pumpscore template --out card.yaml
 
 Then fill in the four layer scores, pattern checklist, red flags, and context
 fields from your own research.
+
+## New in v0.4
+
+Three more offline, deterministic tools - the keyless core is untouched.
+
+```bash
+# Explain why a single scorecard lands in its band (text / markdown / json)
+pumpscore explain card.yaml --format markdown
+
+# Check one-layer-at-a-time mechanical score swings
+pumpscore sensitivity card.yaml --format json
+
+# Flatten a scorecard into one spreadsheet / pipeline row
+pumpscore export card.yaml --format csv
+pumpscore export card.yaml --format json
+```
 
 ## New in v0.3
 

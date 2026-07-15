@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.4.0 - 2026-07-15
+
+- Added `pumpscore explain CARD.yaml` - explain one weighted scorecard's band,
+  band distance, layer contributions, and highest-leverage layer. Deterministic
+  and offline; `text`, `markdown` or `json` output, optional `--out`. New API:
+  `explain_card`, `format_explanation`.
+- Added `pumpscore sensitivity CARD.yaml` - run one-layer-at-a-time swing checks
+  from 0 to 25 points and flag mechanically pivotal layers. Deterministic and
+  offline; `text`, `markdown` or `json` output, optional `--out`. New API:
+  `sensitivity`, `format_sensitivity`.
+- Added `pumpscore export CARD.yaml` - flatten one scorecard into a stable
+  spreadsheet/pipeline row with checklist context when present. Deterministic
+  and offline; `csv` or `json` output, optional `--out`. New API: `export_row`,
+  `format_export`.
+- All additions keep the deterministic, keyless, offline core untouched.
+
 ## v0.3.0 - 2026-06-21
 
 - Added `pumpscore compare CARD1 CARD2 ...` — rank several scorecards side by
